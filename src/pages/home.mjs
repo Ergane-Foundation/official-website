@@ -18,8 +18,8 @@ const deviceViz = `<svg class="viz" viewBox="0 0 200 90" aria-hidden="true">
 export function home({ gh, projects }) {
   const stars = projects.reduce((n, p) => n + p.stars, 0);
   const forks = projects.reduce((n, p) => n + p.forks, 0);
-  const everyone = people(gh);
-  const cells = [['Projects', projects.length], ['Stars', stars], ['Forks', forks], ['Open issues', gh.openIssues ?? '—'], ['Open PRs', gh.openPrs ?? '—'], ['Contributors', everyone.length]];
+  const { core, contributors } = people(gh);
+  const cells = [['Projects', projects.length], ['Stars', stars], ['Forks', forks], ['Open issues', gh.openIssues ?? '—'], ['Open PRs', gh.openPrs ?? '—'], ['Contributors', core.length + contributors.length]];
   const when = `${new Date(gh.fetchedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
   const sync = {
     live: `live from the GitHub API · ${when}`,
@@ -36,7 +36,7 @@ export function home({ gh, projects }) {
   <div class="hero-in">
     <a class="pill" href="${u('/community/')}"><i class="dot"></i><span class="mono">[ Ergane Foundation // open-source systems &amp; security ]</span></a>
     <h1>Resilient systems,<br>built in the open.</h1>
-    <p class="lede">Ergane Foundation maintains open-source security, privacy and infrastructure software, from inline intrusion prevention to carbon-aware stream processing. Apache-2.0, run by the people who maintain it.</p>
+    <p class="lede">Ergane Foundation maintains open-source security, privacy and infrastructure software, from inline intrusion prevention to carbon-aware stream processing. Apache-2.0, stewarded by a core team.</p>
     <div class="row">
       <a class="btn pri" href="${u('/projects/')}">Explore projects ${arrow}</a>
       <a class="btn" href="${links.github}" rel="noopener">View on GitHub <span class="mono">★ ${stars}</span></a>
@@ -51,8 +51,8 @@ export function home({ gh, projects }) {
   <p class="mono tele-src">source: ${sync}</p>
 </section>
 
-<section class="sec" id="projects">
-  ${secHead('01 // PROJECTS', 'Software we maintain', 'Each project lives in the Ergane-Foundation GitHub organisation and is run by its own maintainers. <a href="' + u('/projects/') + '">See all projects ' + arrow + '</a>')}
+<section class="sec" id="software">
+  ${secHead('01 // PROJECTS', 'Software we maintain', 'Each project lives in the Ergane-Foundation GitHub organisation, with one or more core members assigned to it. <a href="' + u('/projects/') + '">See all projects ' + arrow + '</a>')}
   <div class="grid3">${projects.map(projectCard).join('')}</div>
 </section>
 
@@ -66,8 +66,8 @@ export function home({ gh, projects }) {
       <div class="heat" role="img" aria-label="Weekly commit activity across all repositories over the last 52 weeks">${heat(gh.activity)}</div>
       <p class="mono cap">${gh.activity.length ? 'commits / week, last 52 weeks' : 'weekly activity appears when the build can reach the GitHub API'}</p>${repoLinks(pillars[2])}</article>
     <article class="card spot b-d"><span class="mono">[${pillars[3].id} // ${pillars[3].title}]</span><h3>${pillars[3].title}</h3><p>${pillars[3].body}</p>
-      <div class="avs">${everyone.map(avatar).join('')}</div>
-      <p class="mono cap">${everyone.length} people with a commit or pull request · org members ringed in amber</p><div class="chips"><a class="chip" href="${u('/community/')}">how we work</a><span class="chip">Apache-2.0</span><span class="chip">SECURITY.md</span></div></article>
+      <div class="avs">${core.map((l) => avatar(l, true)).join('')}</div>
+      <p class="mono cap">${core.length} core members · every repository has one or more assigned</p><div class="chips"><a class="chip" href="${u('/community/')}">how we work</a><span class="chip">Apache-2.0</span><span class="chip">SECURITY.md</span></div></article>
   </div>
 </section>
 

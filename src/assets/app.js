@@ -63,7 +63,7 @@
 
   // project filters: AND across the two groups, mirrored in the URL (?domain=…&lang=…) so a filtered view can be shared
   const grid = $('#projects');
-  if (grid) {
+  if (grid && $('#none')) { // both exist only on /projects/; an id clash on another page must not stop the script
     const cards = $$('.proj', grid);
     const state = { domain: '', lang: '' };
     const known = (key, v) => $$(`.filter[data-filter=${key}] [data-v]`).some((b) => b.dataset.v === v);

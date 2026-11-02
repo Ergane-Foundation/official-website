@@ -8,7 +8,7 @@ export const links = {
   mergedPrs: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} is:pr is:merged`)}&type=pullrequests`,
 };
 
-export const nav = [['Projects', '/projects/'], ['Community', '/community/'], ['Research', '/research/'], ['Docs', '/docs/']];
+export const nav = [['Projects', '/projects/'], ['Community', '/community/'], ['Research', '/research/']];
 
 // Curated per-repo copy. Live GitHub data (stars, description, topics) is merged over it at build time.
 const meta = {
@@ -31,7 +31,7 @@ export const pillars = [
   { id: '01', title: 'Security Infrastructure', body: 'Inline intrusion prevention and pentester-style network assessment, designed to fail safe.', repos: ['vajra', 'watchdog'] },
   { id: '02', title: 'On-Device AI', body: 'Face verification and liveness that run offline. No cloud API, no per-call cost, and biometric data stays on the device.', repos: ['faceproof'] },
   { id: '03', title: 'Systems & Tooling', body: 'Developer tools and operators for the stack underneath: an ADB terminal UI, and carbon-aware suspension for Flink on Kubernetes.', repos: ['adbt', 'solstice'] },
-  { id: '04', title: 'Open Governance', body: 'Apache-2.0 unless a project says otherwise. Every project is run by its own maintainers, and security reports are handled privately.', repos: [] },
+  { id: '04', title: 'Core-Team Stewardship', body: 'Core members make the decisions that shape the foundation, and every repository has one or more of them assigned. Contributions are welcome from anyone, under Apache-2.0 unless a project says otherwise.', repos: [] },
 ];
 
 export const flagship = {

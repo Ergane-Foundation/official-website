@@ -6,17 +6,20 @@ export const secHead = (coord, title, sub = '') =>
 
 export const day = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : '');
 
-// Org members first, then everyone else with a commit or PR, de-duplicated case-insensitively.
+// Core members are the org's public members. Contributors are everyone else with a commit or PR (deduped, case-insensitive).
 export function people(gh) {
-  const member = new Set(gh.members.map((l) => l.toLowerCase()));
   const seen = new Set();
-  return [...gh.members, ...gh.contributors]
-    .filter((l) => !seen.has(l.toLowerCase()) && seen.add(l.toLowerCase()))
-    .map((login) => ({ login, member: member.has(login.toLowerCase()) }));
+  const fresh = (l) => !seen.has(l.toLowerCase()) && seen.add(l.toLowerCase());
+  const core = gh.members.filter(fresh);
+  return { core, contributors: gh.contributors.filter(fresh) };
 }
 
-export const avatar = ({ login, member }) =>
-  `<a class="av${member ? ' m' : ''}" href="https://github.com/${esc(login)}" rel="noopener" title="${esc(login)}${member ? ' · org member' : ''}"><img src="https://github.com/${esc(login)}.png?size=96" alt="${esc(login)}" width="48" height="48" loading="lazy"></a>`;
+const img = (login) => `<img src="https://github.com/${esc(login)}.png?size=96" alt="${esc(login)}" width="48" height="48" loading="lazy">`;
+export const avatar = (login, core = false) =>
+  `<a class="av${core ? ' m' : ''}" href="https://github.com/${esc(login)}" rel="noopener" title="${esc(login)}${core ? ' · core member' : ''}">${img(login)}</a>`;
+// Core member with a name caption.
+export const who = (login) =>
+  `<a class="who" href="https://github.com/${esc(login)}" rel="noopener"><span class="av m">${img(login)}</span><span class="mono">${esc(login)}</span></a>`;
 
 export function projectCard(p) {
   return `<article class="card spot proj" data-domain="${esc(p.domain)}" data-lang="${esc(p.language)}">
@@ -41,7 +44,7 @@ export function feed(gh) {
 export function channels() {
   return `<div class="channels">
   <a class="card spot ch" href="${links.github}" rel="noopener"><span class="mono">01 // GitHub</span><h3>Read the source</h3><p>Browse repositories, open pull requests, pick up a good first issue.</p><span class="go">github.com/Ergane-Foundation ${arrow}</span></a>
-  <a class="card spot ch" href="${links.discord}" rel="noopener"><span class="mono">02 // Discord</span><h3>Talk to maintainers</h3><p>Community discussion and contributor onboarding. Start here if you are new.</p><span class="go">Join the Discord ${arrow}</span></a>
+  <a class="card spot ch" href="${links.discord}" rel="noopener"><span class="mono">02 // Discord</span><h3>Talk to the core team</h3><p>Community discussion and contributor onboarding. Start here if you are new.</p><span class="go">Join the Discord ${arrow}</span></a>
   <a class="card spot ch" href="${links.propose}" rel="noopener"><span class="mono">03 // Propose</span><h3>Bring a project</h3><p>Maintain something open source? Propose it to the foundation and we will talk it through.</p><span class="go">Propose a project ${arrow}</span></a>
 </div>`;
 }

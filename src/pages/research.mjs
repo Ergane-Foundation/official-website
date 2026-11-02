@@ -11,7 +11,7 @@ export const notes = [
     kind: 'Engineering note',
     summary: 'An inline intrusion prevention system that blocks its own host is worse than none. How Vajra decides what it may never block.',
     body: `
-<p class="draft mono">Draft · summarised from the Vajra README and docs/architecture.md · maintainers to review</p>
+<p class="draft mono">Draft · summarised from the Vajra README and docs/architecture.md · core members to review</p>
 <p>An inline IPS sits in the packet path. That is what makes it effective, and it is also what makes a bad decision expensive: block the wrong address and the machine loses its gateway, its DNS, or its own loopback. Vajra is built around one rule that follows from this: <strong>it never cuts the host off from its own network.</strong></p>
 
 <h2>The pipeline</h2>

@@ -11,7 +11,6 @@ import { home } from './src/pages/home.mjs';
 import { projectsIndex, projectPage } from './src/pages/projects.mjs';
 import { community } from './src/pages/community.mjs';
 import { researchIndex, notePage, notes } from './src/pages/research.mjs';
-import { docs } from './src/pages/docs.mjs';
 
 const DIST = 'dist';
 
@@ -29,7 +28,7 @@ async function build() {
   const idx = [
     ...nav.map(([t, h]) => ({ t, d: 'Page', h: u(h), k: 'page' })),
     ...projects.map((p) => ({ t: p.name, d: p.tagline, h: u(`/projects/${p.slug}/`), g: p.url, k: 'project' })),
-    ...projects.map((p) => ({ t: `${p.name} docs`, d: 'Documentation', h: u(`/docs/#${p.slug}`), k: 'docs' })),
+    ...projects.map((p) => ({ t: `${p.name} docs`, d: 'Documentation', h: u(`/projects/${p.slug}/#docs`), k: 'docs' })),
     ...notes.map((n) => ({ t: n.title, d: n.kind, h: u(`/research/${n.slug}/`), k: 'research' })),
     { t: 'Ergane-Foundation on GitHub', d: links.github, h: links.github, k: 'link' },
     { t: 'Join the Discord', d: 'Community discussion and onboarding', h: links.discord, k: 'link' },
@@ -44,7 +43,6 @@ async function build() {
     ['community/index.html', { title: 'Community', desc: 'How the Ergane Foundation works and how to contribute.', path: '/community/', body: community(ctx) }],
     ['research/index.html', { title: 'Research', desc: 'Engineering notes and proposals from Ergane Foundation projects.', path: '/research/', theme: 'light', body: researchIndex() }],
     ...notes.map((n) => [`research/${n.slug}/index.html`, { title: n.title, desc: n.summary, path: '/research/', theme: 'light', body: notePage(n) }]),
-    ['docs/index.html', { title: 'Docs', desc: 'Where to find documentation for each Ergane Foundation project.', path: '/docs/', theme: 'light', body: docs(ctx) }],
     ['404.html', { title: 'Not found', desc: 'Page not found.', path: '/404', body: `<section class="sec page-h"><span class="mono">[404]</span><h1>Nothing at this address.</h1><p class="lede"><a href="${u('/')}">Back to the home page</a></p></section>` }],
   ];
 
