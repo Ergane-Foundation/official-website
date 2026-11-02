@@ -4,14 +4,9 @@ export const links = {
   github: `https://github.com/${ORG}`,
   discord: 'https://discord.gg/b4BQzQX5z',
   propose: 'https://forms.gle/LYJvszzPkoqof9xLA',
-  // ponytail: no public Slack invite exists yet, so the Slack card routes to Discord. Set a URL here to enable it.
-  slack: null,
   goodFirst: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} label:"good first issue" state:open`)}&type=issues`,
   mergedPrs: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} is:pr is:merged`)}&type=pullrequests`,
 };
-
-// Public org members (github.com/Ergane-Foundation, People tab).
-export const members = ['agam1092005', 'SakshhamTheCoder', 'NamanmeetSingh', 'ShreyasMahajann', 'yash-agarwa-l', 'DhruvGoyal404'];
 
 export const nav = [['Projects', '/projects/'], ['Community', '/community/'], ['Research', '/research/'], ['Docs', '/docs/']];
 

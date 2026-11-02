@@ -1,6 +1,6 @@
-import { links, members, pillars } from '../site.mjs';
+import { links, pillars } from '../site.mjs';
 import { esc, u, arrow } from '../layout.mjs';
-import { secHead, avatar, feed, channels, projectCard, copyCmd } from '../parts.mjs';
+import { secHead, avatar, people, feed, channels, projectCard, copyCmd } from '../parts.mjs';
 
 const heat = (weeks) => {
   const max = Math.max(1, ...weeks);
@@ -18,8 +18,15 @@ const deviceViz = `<svg class="viz" viewBox="0 0 200 90" aria-hidden="true">
 export function home({ gh, projects }) {
   const stars = projects.reduce((n, p) => n + p.stars, 0);
   const forks = projects.reduce((n, p) => n + p.forks, 0);
-  const cells = [['Projects', projects.length], ['Stars', stars], ['Forks', forks], ['Open issues', gh.openIssues ?? '—'], ['Open PRs', gh.openPrs ?? '—'], ['Members', members.length]];
-  const sync = `${gh.source === 'live' ? 'live from the GitHub API' : 'committed snapshot (API unreachable at build)'} · ${new Date(gh.fetchedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+  const everyone = people(gh);
+  const cells = [['Projects', projects.length], ['Stars', stars], ['Forks', forks], ['Open issues', gh.openIssues ?? '—'], ['Open PRs', gh.openPrs ?? '—'], ['Contributors', everyone.length]];
+  const when = `${new Date(gh.fetchedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+  const sync = {
+    live: `live from the GitHub API · ${when}`,
+    partial: `live from the GitHub API · ${when} · ${(gh.stale ?? []).join(', ')} kept from earlier data`,
+    cached: `cached GitHub data · ${when} · API unreachable at build`,
+    snapshot: `committed snapshot · ${when} · API unreachable at build`,
+  }[gh.source];
   const link = (slug) => `<a class="chip" href="${u(`/projects/${slug}/`)}">${slug}</a>`;
   const repoLinks = (p) => (p.repos.length ? `<div class="chips">${p.repos.map(link).join('')}</div>` : '');
 
@@ -59,7 +66,8 @@ export function home({ gh, projects }) {
       <div class="heat" role="img" aria-label="Weekly commit activity across all repositories over the last 52 weeks">${heat(gh.activity)}</div>
       <p class="mono cap">${gh.activity.length ? 'commits / week, last 52 weeks' : 'weekly activity appears when the build can reach the GitHub API'}</p>${repoLinks(pillars[2])}</article>
     <article class="card spot b-d"><span class="mono">[${pillars[3].id} // ${pillars[3].title}]</span><h3>${pillars[3].title}</h3><p>${pillars[3].body}</p>
-      <div class="avs">${members.map(avatar).join('')}</div><div class="chips"><a class="chip" href="${u('/community/')}">how we work</a><span class="chip">Apache-2.0</span><span class="chip">SECURITY.md</span></div></article>
+      <div class="avs">${everyone.map(avatar).join('')}</div>
+      <p class="mono cap">${everyone.length} people with a commit or pull request · org members ringed in amber</p><div class="chips"><a class="chip" href="${u('/community/')}">how we work</a><span class="chip">Apache-2.0</span><span class="chip">SECURITY.md</span></div></article>
   </div>
 </section>
 

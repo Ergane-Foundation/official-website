@@ -1,4 +1,4 @@
-import { links, flagship, members } from './site.mjs';
+import { links, flagship } from './site.mjs';
 import { esc, u, json, arrow } from './layout.mjs';
 
 export const secHead = (coord, title, sub = '') =>
@@ -6,8 +6,17 @@ export const secHead = (coord, title, sub = '') =>
 
 export const day = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : '');
 
-export const avatar = (login) =>
-  `<a class="av${members.includes(login) ? ' m' : ''}" href="https://github.com/${esc(login)}" rel="noopener" title="${esc(login)}${members.includes(login) ? ' · member' : ''}"><img src="https://github.com/${esc(login)}.png?size=96" alt="${esc(login)}" width="48" height="48" loading="lazy"></a>`;
+// Org members first, then everyone else with a commit or PR, de-duplicated case-insensitively.
+export function people(gh) {
+  const member = new Set(gh.members.map((l) => l.toLowerCase()));
+  const seen = new Set();
+  return [...gh.members, ...gh.contributors]
+    .filter((l) => !seen.has(l.toLowerCase()) && seen.add(l.toLowerCase()))
+    .map((login) => ({ login, member: member.has(login.toLowerCase()) }));
+}
+
+export const avatar = ({ login, member }) =>
+  `<a class="av${member ? ' m' : ''}" href="https://github.com/${esc(login)}" rel="noopener" title="${esc(login)}${member ? ' · org member' : ''}"><img src="https://github.com/${esc(login)}.png?size=96" alt="${esc(login)}" width="48" height="48" loading="lazy"></a>`;
 
 export function projectCard(p) {
   return `<article class="card spot proj" data-domain="${esc(p.domain)}" data-lang="${esc(p.language)}">
@@ -24,17 +33,16 @@ export function feed(gh) {
       ? `<ul class="feed">${items.map((i) => `<li><a href="${esc(i.url)}" rel="noopener"><span class="mono">${esc(i.repo)}#${i.number}</span><span>${esc(i.title)}</span><time class="mono">${day(i.at)}</time></a></li>`).join('')}</ul>`
       : `<p class="empty">${empty} <a href="${href}" rel="noopener">Search on GitHub ${arrow}</a></p>`;
   return `<div class="feeds">
-  <div class="card"><h3 class="mono">Recently merged PRs</h3>${list(gh.mergedPrs, 'Merged pull requests are fetched when the site is built.', links.mergedPrs)}</div>
-  <div class="card"><h3 class="mono">Good first issues</h3>${list(gh.goodFirst, 'No open issues labelled “good first issue” were found at build time.', links.goodFirst)}</div>
+  <div class="card"><h3 class="mono">Recently merged PRs</h3>${list(gh.mergedPrs, 'No merged pull requests to show right now.', links.mergedPrs)}</div>
+  <div class="card"><h3 class="mono">Good first issues</h3>${list(gh.goodFirst, 'No open issues labelled “good first issue” right now.', links.goodFirst)}</div>
 </div>`;
 }
 
 export function channels() {
-  const slack = links.slack;
   return `<div class="channels">
   <a class="card spot ch" href="${links.github}" rel="noopener"><span class="mono">01 // GitHub</span><h3>Read the source</h3><p>Browse repositories, open pull requests, pick up a good first issue.</p><span class="go">github.com/Ergane-Foundation ${arrow}</span></a>
   <a class="card spot ch" href="${links.discord}" rel="noopener"><span class="mono">02 // Discord</span><h3>Talk to maintainers</h3><p>Community discussion and contributor onboarding. Start here if you are new.</p><span class="go">Join the Discord ${arrow}</span></a>
-  <a class="card spot ch" href="${slack ?? links.discord}" rel="noopener"><span class="mono">03 // Slack</span><h3>Working groups</h3><p>${slack ? 'Working groups and maintainer coordination.' : 'Working-group and maintainer coordination is by invitation. Ask in Discord to be added.'}</p><span class="go">${slack ? 'Open Slack' : 'Ask in Discord'} ${arrow}</span></a>
+  <a class="card spot ch" href="${links.propose}" rel="noopener"><span class="mono">03 // Propose</span><h3>Bring a project</h3><p>Maintain something open source? Propose it to the foundation and we will talk it through.</p><span class="go">Propose a project ${arrow}</span></a>
 </div>`;
 }
 

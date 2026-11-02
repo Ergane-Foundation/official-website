@@ -1,6 +1,5 @@
-import { links, members } from '../site.mjs';
-import { u, arrow } from '../layout.mjs';
-import { secHead, avatar, feed, channels } from '../parts.mjs';
+import { u } from '../layout.mjs';
+import { secHead, avatar, people, feed, channels } from '../parts.mjs';
 
 const steps = [
   ['Pick or open an issue', 'Start with any issue labelled “good first issue”, or open one describing what you want to change. Small, focused changes land fastest.'],
@@ -10,7 +9,7 @@ const steps = [
 ];
 
 export function community({ gh }) {
-  const wall = [...new Set([...members, ...gh.contributors])];
+  const wall = people(gh);
   return `
 <section class="sec page-h">
   ${secHead('COMMUNITY // GOVERNANCE', 'How Ergane works', 'Ergane (er-GAH-neh) was the ancient Greek title for the patron of makers. The foundation is a home for open-source projects, each run by its own maintainers.')}
@@ -30,7 +29,7 @@ export function community({ gh }) {
 </section>
 
 <section class="sec">
-  ${secHead('02 // PEOPLE', 'Maintainers and contributors', 'Org members carry an amber ring. Contributors are read from GitHub when the site is built.')}
+  ${secHead('02 // PEOPLE', 'Maintainers and contributors', `Everyone with a commit or pull request in any Ergane repository, plus the organisation's public members (amber ring). ${wall.length} people so far.`)}
   <div class="avs wall">${wall.map(avatar).join('')}</div>
 </section>
 
@@ -42,6 +41,5 @@ export function community({ gh }) {
 <section class="sec">
   ${secHead('04 // CHANNELS', 'Where we talk')}
   ${channels()}
-  <p class="note">Want to bring a project to Ergane? <a href="${links.propose}" rel="noopener">Propose it here ${arrow}</a></p>
 </section>`;
 }

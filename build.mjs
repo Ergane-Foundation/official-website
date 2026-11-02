@@ -17,6 +17,11 @@ const DIST = 'dist';
 
 async function build() {
   const gh = await loadGithub();
+  if (process.argv.includes('--snapshot')) { // refresh the committed fallback from a fully live fetch
+    if (gh.source !== 'live') throw new Error(`refusing to snapshot ${gh.source} data; wait for the rate limit or set GITHUB_TOKEN`);
+    const { stale, ...fresh } = gh;
+    await writeFile('src/snapshot.json', `${JSON.stringify({ ...fresh, source: 'snapshot' }, null, 2)}\n`);
+  }
   const projects = catalog(gh);
   const ctx = { gh, projects };
   const stars = projects.reduce((n, p) => n + p.stars, 0);
@@ -33,7 +38,7 @@ async function build() {
   ];
 
   const pages = [
-    ['index.html', { title: 'Ergane Foundation — Resilient systems, built in the open', desc: 'Ergane Foundation builds and maintains open-source security, privacy and infrastructure software, developed by a community of contributors.', path: '/', home: true, body: home(ctx) }],
+    ['index.html', { title: 'Ergane Foundation', desc: 'Ergane Foundation builds and maintains open-source security, privacy and infrastructure software, developed by a community of contributors.', path: '/', home: true, body: home(ctx) }],
     ['projects/index.html', { title: 'Projects', desc: 'Open-source projects maintained under the Ergane Foundation.', path: '/projects/', body: projectsIndex(ctx) }],
     ...projects.map((p) => [`projects/${p.slug}/index.html`, { title: p.name, desc: p.tagline, path: '/projects/', body: projectPage(p) }]),
     ['community/index.html', { title: 'Community', desc: 'How the Ergane Foundation works and how to contribute.', path: '/community/', body: community(ctx) }],

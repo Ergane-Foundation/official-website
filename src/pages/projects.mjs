@@ -9,10 +9,15 @@ export function projectsIndex({ projects }) {
 <section class="sec page-h">
   ${secHead('PROJECTS // ECOSYSTEM', 'Projects', 'Every repository below lives in the Ergane-Foundation GitHub organisation and is run by its own maintainers. Star, fork and license data is read from GitHub when the site is built.')}
   <div class="filters">${chips('Domain', 'domain')}${chips('Language', 'lang')}</div>
+  <p class="mono" id="count" role="status" aria-live="polite">Showing ${projects.length} of ${projects.length} projects</p>
 </section>
 <section class="sec">
-  <div class="grid3 bento-like" id="projects">${projects.map(projectCard).join('')}</div>
-  <p class="empty" id="none" hidden>No projects match those filters.</p>
+  <div class="grid3" id="projects">${projects.map(projectCard).join('')}</div>
+  <div class="term nomatch" id="none" hidden role="status">
+    <div class="term-h mono"><span>ergane · filter</span><i class="dot amber"></i></div>
+    <pre id="none-log"></pre>
+    <div class="row"><button class="btn sm" type="button" id="reset">Clear filters</button><a class="btn sm ghost" href="${links.propose}" rel="noopener">Propose a project ${arrow}</a></div>
+  </div>
   <p class="note">Have a project you would like to bring to Ergane? <a href="${links.propose}" rel="noopener">Propose it here ${arrow}</a></p>
 </section>`;
 }

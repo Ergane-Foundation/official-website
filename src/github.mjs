@@ -1,68 +1,132 @@
-import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { ORG } from './site.mjs';
 
-const CACHE = '.cache/github.json';
+const SNAPSHOT = new URL('./snapshot.json', import.meta.url);
 const headers = {
   Accept: 'application/vnd.github+json',
   'User-Agent': 'ergane-website-build',
   ...(process.env.GITHUB_TOKEN && { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }),
 };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const q = encodeURIComponent;
+const readJson = (p) => readFile(p, 'utf8').then(JSON.parse, () => null);
+const union = (...lists) => {
+  const seen = new Map();
+  lists.flat().forEach((l) => seen.has(l.toLowerCase()) || seen.set(l.toLowerCase(), l));
+  return [...seen.values()];
+};
 
-async function get(path) {
-  const r = await fetch(`https://api.github.com${path}`, { headers, signal: AbortSignal.timeout(10_000) });
-  if (!r.ok) throw new Error(`${path} → ${r.status}`);
-  return r.json();
+// One request. Network blips, 5xx and 202 ("stats still computing") are retried; rate limiting (403/429) fails fast
+// because the limit resets in minutes to an hour and retrying only burns more of it.
+async function request(url) {
+  for (let i = 1; ; i++) {
+    const last = i >= 3;
+    let r;
+    try { r = await fetch(url, { headers, signal: AbortSignal.timeout(10_000) }); }
+    catch (e) { if (last) throw e; await sleep(500 * i); continue; }
+    if ((r.status === 202 || r.status >= 500) && !last) { await sleep(800 * i); continue; }
+    if (r.status === 202 || r.status === 204) return { body: r.status === 204 ? [] : null };
+    if (!r.ok) throw new Error(`${url.replace('https://api.github.com', '')} → ${r.status}${r.status === 403 || r.status === 429 ? ' (rate limited?)' : ''}`);
+    return { body: await r.json(), next: /<([^>]+)>;\s*rel="next"/.exec(r.headers.get('link') ?? '')?.[1] };
+  }
 }
-const q = (s) => encodeURIComponent(s);
-const optional = (p) => p.catch(() => null);
+const get = async (path) => (await request(`https://api.github.com${path}`)).body;
+async function pages(path, max = 5) {
+  const out = [];
+  let url = `https://api.github.com${path}`;
+  for (let i = 0; url && i < max; i++) {
+    const { body, next } = await request(url);
+    out.push(...(Array.isArray(body) ? body : body?.items ?? []));
+    url = next;
+  }
+  return out;
+}
 
-async function live() {
-  const repos = (await get(`/orgs/${ORG}/repos?per_page=100&type=public`)).filter((r) => !r.fork && !r.archived);
-  const [prs, openPrs, good] = await Promise.all([
-    optional(get(`/search/issues?q=${q(`org:${ORG} is:pr is:merged`)}&sort=updated&per_page=6`)),
-    optional(get(`/search/issues?q=${q(`org:${ORG} is:pr is:open`)}&per_page=1`)),
-    optional(get(`/search/issues?q=${q(`org:${ORG} is:issue is:open label:"good first issue"`)}&sort=updated&per_page=8`)),
+const isUser = (u) => u?.type === 'User'; // drops bots (dependabot, github-actions) and deleted accounts
+const slim = (i) => ({ number: i.number, title: i.title, repo: i.repository_url.split('/').pop(), url: i.html_url, at: i.closed_at || i.updated_at || '' });
+
+// Each section below throws on failure, so "GitHub said there are none" ([]) is never confused with "we couldn't ask".
+const membersSection = async () => (await pages(`/orgs/${ORG}/public_members?per_page=100`)).filter(isUser).map((m) => m.login);
+
+async function feedsSection(repos) {
+  const search = (query, extra) => get(`/search/issues?q=${q(`org:${ORG} ${query}`)}${extra}`);
+  const [merged, open, good] = await Promise.all([
+    search('is:pr is:merged', '&sort=updated&per_page=10'),
+    search('is:pr is:open', '&per_page=1'),
+    search('is:issue is:open label:"good first issue"', '&sort=updated&per_page=8'),
   ]);
-  const extra = await Promise.all(repos.map(async (r) => ({
-    contributors: await optional(get(`/repos/${ORG}/${r.name}/contributors?per_page=30`)),
-    participation: await optional(get(`/repos/${ORG}/${r.name}/stats/participation`)), // 202 while GitHub computes it → empty
-  })));
-
-  const slim = (i) => ({ number: i.number, title: i.title, repo: i.repository_url.split('/').pop(), url: i.html_url, at: i.closed_at || i.updated_at });
-  const weeks = Array.from({ length: 52 }, (_, w) => extra.reduce((n, e) => n + (e.participation?.all?.[w] ?? 0), 0));
-  const people = new Map();
-  extra.forEach((e) => (Array.isArray(e.contributors) ? e.contributors : []).forEach((c) => c.type === 'User' && people.set(c.login, (people.get(c.login) ?? 0) + c.contributions)));
-  const totalOpen = repos.reduce((n, r) => n + r.open_issues_count, 0);
-
+  if (!merged || !open || !good) throw new Error('search returned no body');
   return {
-    source: 'live',
+    mergedPrs: merged.items.map(slim).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6),
+    goodFirst: good.items.map(slim),
+    openPrs: open.total_count,
+    openIssues: repos.reduce((n, r) => n + r.open_issues_count, 0) - open.total_count,
+  };
+}
+
+// Everyone with a commit or a pull request (merged, open or closed) in any repository, most active first.
+async function peopleSection(repos) {
+  const weight = new Map();
+  const add = (login, n) => weight.set(login, (weight.get(login) ?? 0) + n);
+  const [byRepo, prs] = await Promise.all([
+    Promise.all(repos.map((r) => pages(`/repos/${ORG}/${r.name}/contributors?per_page=100`, 3))),
+    pages(`/search/issues?q=${q(`org:${ORG} is:pr`)}&per_page=100`, 5),
+  ]);
+  byRepo.flat().forEach((c) => isUser(c) && add(c.login, c.contributions));
+  prs.forEach((p) => isUser(p.user) && add(p.user.login, 1));
+  return [...weight].sort((a, b) => b[1] - a[1]).map(([login]) => login);
+}
+
+async function activitySection(repos) {
+  const stats = await Promise.all(repos.map((r) => get(`/repos/${ORG}/${r.name}/stats/participation`).catch(() => null)));
+  const ok = stats.filter((s) => s?.all?.length);
+  if (!ok.length) throw new Error('participation stats not ready');
+  return Array.from({ length: 52 }, (_, w) => ok.reduce((n, s) => n + (s.all[w] ?? 0), 0));
+}
+
+// Live data when the API answers. Anything that fails keeps its last known good value (cache, then the committed
+// snapshot) instead of going blank, and `source`/`stale` say what happened. A fully live cache under 15 min old is
+// reused so repeated local builds don't burn the 60 req/h unauthenticated limit.
+export async function loadGithub({ cache = '.cache/github.json', maxAge = 15 * 60_000 } = {}) {
+  const [snapshot, cached] = await Promise.all([readJson(SNAPSHOT), readJson(cache)]);
+  if (cached?.source === 'live' && Date.now() - new Date(cached.fetchedAt) < maxAge) return cached;
+  const base = { ...snapshot, ...cached };
+
+  let repos;
+  try {
+    repos = (await pages(`/orgs/${ORG}/repos?per_page=100&type=public`)).filter((r) => !r.fork && !r.archived);
+  } catch (e) {
+    console.warn(`[github] ${e.message}; using ${cached ? 'cached' : 'committed snapshot'} data. Set GITHUB_TOKEN for a higher rate limit.`);
+    return { ...base, source: cached ? 'cached' : 'snapshot', stale: [] };
+  }
+
+  const run = async (name, fn) => {
+    try { return [name, await fn()]; } catch (e) { console.warn(`[github] ${name}: ${e.message}`); return [name, undefined]; }
+  };
+  const results = await Promise.all([
+    run('members', membersSection),
+    run('feeds', () => feedsSection(repos)),
+    run('people', () => peopleSection(repos)),
+    run('activity', () => activitySection(repos)),
+  ]);
+  const got = Object.fromEntries(results);
+  const stale = results.filter(([, v]) => v === undefined).map(([n]) => n);
+
+  const data = {
+    ...base,
+    source: stale.length ? 'partial' : 'live',
+    stale,
     fetchedAt: new Date().toISOString(),
     repos: repos.map((r) => ({
       name: r.name, description: r.description, language: r.language, stars: r.stargazers_count, forks: r.forks_count,
       license: r.license?.spdx_id ?? null, topics: r.topics ?? [], pushed: r.pushed_at,
     })),
-    openPrs: openPrs?.total_count ?? null,
-    openIssues: openPrs ? totalOpen - openPrs.total_count : totalOpen,
-    mergedPrs: (prs?.items ?? []).map(slim),
-    goodFirst: (good?.items ?? []).map(slim),
-    contributors: [...people].sort((a, b) => b[1] - a[1]).map(([login]) => login),
-    activity: weeks.some(Boolean) ? weeks : [],
+    ...(got.members && { members: got.members }),
+    ...got.feeds,
+    ...(got.activity && { activity: got.activity }),
+    contributors: union(got.people ?? [], base.contributors ?? []), // only ever grows, so a flaky page can't drop people
   };
-}
-
-// Live data when the API answers, otherwise the committed snapshot. A fresh cache (<15 min) avoids hammering the
-// unauthenticated 60 req/h limit while iterating locally.
-export async function loadGithub() {
-  try {
-    if (Date.now() - (await stat(CACHE)).mtimeMs < 15 * 60_000) return JSON.parse(await readFile(CACHE, 'utf8'));
-  } catch {}
-  try {
-    const data = await live();
-    await mkdir('.cache', { recursive: true });
-    await writeFile(CACHE, JSON.stringify(data));
-    return data;
-  } catch (e) {
-    console.warn(`[github] live fetch failed (${e.message}); using committed snapshot. Set GITHUB_TOKEN for a higher rate limit.`);
-    return JSON.parse(await readFile(new URL('./snapshot.json', import.meta.url), 'utf8'));
-  }
+  await mkdir(dirname(cache), { recursive: true }).then(() => writeFile(cache, JSON.stringify(data))).catch(() => {});
+  return data;
 }

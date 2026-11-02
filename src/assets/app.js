@@ -37,41 +37,66 @@
     try { await navigator.clipboard.writeText(el.dataset.copy); if (tag) { tag.textContent = 'copied'; setTimeout(() => (tag.textContent = 'copy'), 1500); } } catch {}
   });
 
+  // simulated terminal: print lines one by one (all at once under reduced motion)
+  const type = (el, lines, ms = 650) => {
+    clearTimeout(el._t);
+    if (reduced) { el.textContent = lines.join('\n'); return; }
+    el.textContent = '';
+    let i = 0;
+    const next = () => { if (i < lines.length) { el.textContent += (i ? '\n' : '') + lines[i++]; el._t = setTimeout(next, ms); } };
+    next();
+  };
+
   // staged panels (flagship pipeline, contribution steps); an optional #term shows that stage's simulated log
   $$('[data-stages]').forEach((box) => {
     const logs = $('[data-logs]', box) && JSON.parse($('[data-logs]', box).textContent);
     const term = $('#term', box);
-    let timer;
     const show = (n) => {
       box.dataset.active = n;
       $$('[data-stage]', box).forEach((b) => b.setAttribute('aria-pressed', b.dataset.stage == n));
       $$('[data-s]', box).forEach((g) => g.classList.toggle('on', g.dataset.s == n));
-      if (!term) return;
-      clearTimeout(timer);
-      const lines = logs[n - 1];
-      if (reduced) { term.textContent = lines.join('\n'); return; }
-      term.textContent = '';
-      let i = 0;
-      const next = () => { if (i < lines.length) { term.textContent += (i ? '\n' : '') + lines[i++]; timer = setTimeout(next, 650); } };
-      next();
+      if (term) type(term, logs[n - 1]);
     };
     box.addEventListener('click', (e) => { const b = e.target.closest('[data-stage]'); if (b) show(+b.dataset.stage); });
     show(1);
   });
 
-  // project filters (AND across the two groups)
+  // project filters: AND across the two groups, mirrored in the URL (?domain=…&lang=…) so a filtered view can be shared
   const grid = $('#projects');
   if (grid) {
+    const cards = $$('.proj', grid);
     const state = { domain: '', lang: '' };
+    const known = (key, v) => $$(`.filter[data-filter=${key}] [data-v]`).some((b) => b.dataset.v === v);
+    const params = new URLSearchParams(location.search);
+    for (const key of Object.keys(state)) if (known(key, params.get(key) ?? '')) state[key] = params.get(key) ?? '';
+
+    const apply = () => {
+      const match = (c) => (!state.domain || c.dataset.domain === state.domain) && (!state.lang || c.dataset.lang === state.lang);
+      let n = 0;
+      cards.forEach((c) => { c.hidden = !match(c); n += !c.hidden; });
+      $$('.filter').forEach((f) => $$('[data-v]', f).forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === state[f.dataset.filter])));
+      $('#count').textContent = `Showing ${n} of ${cards.length} project${cards.length === 1 ? '' : 's'}`;
+      $('#none').hidden = n > 0;
+      if (!n) {
+        const flags = [state.domain && `--domain "${state.domain}"`, state.lang && `--lang "${state.lang}"`].filter(Boolean).join(' ');
+        type($('#none-log'), [
+          `$ ergane projects ${flags}`,
+          `[ruleset] ${cards.length} projects scanned · 0 matched`,
+          '[verdict] action=drop · nothing in this corner of the ecosystem yet',
+          '[hint]    relax a filter, or propose a project that fills the gap',
+        ], 450);
+      }
+      const p = new URLSearchParams(Object.entries(state).filter(([, v]) => v)).toString();
+      history.replaceState(null, '', p ? `?${p}` : location.pathname);
+    };
     $$('.filter').forEach((f) => f.addEventListener('click', (e) => {
       const b = e.target.closest('[data-v]');
       if (!b) return;
       state[f.dataset.filter] = b.dataset.v;
-      $$('[data-v]', f).forEach((x) => x.setAttribute('aria-pressed', x === b));
-      let n = 0;
-      $$('.proj', grid).forEach((c) => { const ok = (!state.domain || c.dataset.domain === state.domain) && (!state.lang || c.dataset.lang === state.lang); c.hidden = !ok; n += ok; });
-      $('#none').hidden = n > 0;
+      apply();
     }));
+    $('#reset').addEventListener('click', () => { state.domain = state.lang = ''; apply(); });
+    apply();
   }
 
   // cycling CLI block

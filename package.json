@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node build.mjs --serve",
     "build": "node build.mjs",
-    "check": "node build.mjs && node check.mjs"
+    "test": "node test.mjs",
+    "check": "node test.mjs && node build.mjs && node check.mjs"
   }
 }

@@ -8,7 +8,9 @@ No dependencies, Node 20+.
 ```bash
 npm run dev     # build + serve on http://localhost:4321, rebuilds when src/ changes
 npm run build   # write static files to dist/
-npm run check   # build, then verify every internal link and anchor
+npm test        # edge cases for the GitHub data (rate limits, outages, empty results), no network
+npm run check   # tests, build, then verify every internal link and anchor
+node build.mjs --snapshot   # refresh src/snapshot.json from a fully live fetch (needs quota or GITHUB_TOKEN)
 ```
 
 ## Deploy (Vercel)
@@ -20,7 +22,7 @@ Serving from a sub-path instead: `BASE=/sub-path npm run build`.
 ## Layout
 
 - `src/site.mjs` – links, nav, project copy, the Vajra pipeline content. Edit text here.
-- `src/github.mjs` – build-time GitHub data (stars, merged PRs, good first issues, contributors, weekly activity). Falls back to `src/snapshot.json` when the API is unreachable. Set `GITHUB_TOKEN` for a higher rate limit. Results are cached 15 min in `.cache/`.
+- `src/github.mjs` – build-time GitHub data: stars, merged PRs, good first issues, org members, everyone with a commit or PR, weekly activity. Each section falls back on its own to the last cached value, then to `src/snapshot.json`, so a rate limit or outage never leaves a section blank; the stats bar says which source was used. Set `GITHUB_TOKEN` for a higher rate limit. Fully live results are cached 15 min in `.cache/`.
 - `src/pages/*.mjs` – one file per route group; `src/layout.mjs` is the shell; `src/parts.mjs` holds shared blocks.
 - `src/assets/` – `style.css` (design tokens at the top), `app.js` (palette, theme, stages, filters), `lattice.js` (WebGL hero).
 

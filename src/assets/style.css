@@ -10,6 +10,7 @@
   --fg:#0F172A;--fg2:#475569;--acc:#2563EB;--btn:#2563EB;--amb:#B45309;--ok:#047857;--code:#F1F5F9;color-scheme:light}
 
 *{box-sizing:border-box;margin:0}
+[hidden]{display:none!important} /* author display rules (.card, .term…) would otherwise beat the UA [hidden] style */
 html{background:var(--bg);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font:400 1rem/1.6 "Geist Variable",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
@@ -192,6 +193,9 @@ a.chip:hover,button.chip:hover{color:var(--fg);border-color:var(--fg2)}
 .filters{display:grid;gap:12px}
 .filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .filter .mono{min-width:72px}
+.nomatch{border:1px solid var(--hair);border-radius:8px;overflow:hidden}
+.nomatch pre{min-height:112px;padding-bottom:4px;white-space:pre-wrap}
+.nomatch .row{padding:8px 16px 16px}
 .proj p{font-size:.95rem}
 .proj h3{font-size:1.35rem}
 .status{display:flex;align-items:center;padding:8px 12px;border:1px solid var(--hair-hi);border-radius:6px;background:var(--surf);text-transform:none}
