@@ -1,0 +1,17 @@
+{
+  "source": "snapshot",
+  "fetchedAt": "2026-11-02T00:00:00Z",
+  "repos": [
+    { "name": "vajra", "description": "Open-source intrusion prevention system that runs Suricata inline and automatically blocks attacking IPs.", "language": "Python", "stars": 0, "forks": 10, "license": "Apache-2.0", "topics": ["network", "firewall", "cybersecurity", "network-monitoring", "intrusion-prevention", "ngfw", "cybersecurity-tools"] },
+    { "name": "watchdog", "description": "Guided, pentester-style network security assessment for Android, Windows and Linux. Scans on-device, correlates against CVE data with a backend that never touches your data.", "language": "Kotlin", "stars": 2, "forks": 2, "license": "Apache-2.0", "topics": ["android", "kotlin", "cybersecurity", "penetration-testing", "hacktoberfest", "network-security", "vulnerability-scanner"] },
+    { "name": "faceproof", "description": "Faceproof: open-source offline face verification and liveness SDK for React Native. No cloud API, no per-call cost, biometric data never leaves the device.", "language": "TypeScript", "stars": 1, "forks": 3, "license": "Apache-2.0", "topics": ["privacy", "react-native", "offline-first", "face-recognition", "liveness-detection", "tflite", "on-device-ml"] },
+    { "name": "solstice", "description": "Carbon aware suspension for stateful Apache Flink jobs on Kubernetes, without losing their state", "language": "Java", "stars": 2, "forks": 3, "license": "Apache-2.0", "topics": ["kubernetes", "sustainability", "stream-processing", "apache-flink", "kubernetes-operator", "flink", "hacktoberfest", "green-software", "carbon-aware"] },
+    { "name": "adbt", "description": "A modern, keyboard-driven Android Debug Bridge TUI.", "language": "Go", "stars": 91, "forks": 8, "license": "Apache-2.0", "topics": ["go", "golang", "adb", "android-sdk", "tui", "bubbletea", "tui-app"] }
+  ],
+  "openIssues": 111,
+  "openPrs": 8,
+  "mergedPrs": [],
+  "goodFirst": [],
+  "contributors": [],
+  "activity": []
+}
