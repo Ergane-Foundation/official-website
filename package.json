@@ -1,0 +1,10 @@
+{
+  "name": "official-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node build.mjs --serve",
+    "build": "node build.mjs",
+    "check": "node build.mjs && node check.mjs"
+  }
+}
