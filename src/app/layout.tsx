@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
-import { Spotlight, ThemeSync } from '@/components/Chrome';
+import { Spotlight } from '@/components/Chrome';
 import { Palette, type PaletteItem } from '@/components/Palette';
 import { ScrollBar } from '@/components/ScrollBar';
 import { Footer, Header } from '@/components/Shell';
@@ -24,8 +24,8 @@ export const revalidate = 3600; // keep equal to REVALIDATE in lib/github.ts (se
 
 const criticalCss = 'html{background:#08090C;color-scheme:dark}html[data-theme=light]{background:#F8F9FA;color-scheme:light}';
 
-// Runs before first paint so there is no flash: saved choice, else light on /research, else dark.
-const themeScript = `try{var t=localStorage.getItem('ergane-theme')||(location.pathname.indexOf('/research')===0?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}`;
+// Runs before first paint so there is no flash: the saved choice, else dark, on every page.
+const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem('ergane-theme')||'dark'}catch(e){}`;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const projects = await getProjects();
@@ -52,7 +52,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Footer />
         </div>
         <Palette items={items} />
-        <ThemeSync />
         <Spotlight />
         <ScrollBar />
       </body>

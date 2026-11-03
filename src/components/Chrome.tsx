@@ -8,19 +8,8 @@ import { ThemeIcon } from './icons';
 
 const THEME_KEY = 'ergane-theme';
 
-// Dark is the default; /research reads better as "technical paper". A saved choice always wins.
-// Mirrors the inline script in layout.tsx, which sets the same value before first paint.
-export function ThemeSync() {
-  const pathname = usePathname();
-  useEffect(() => {
-    let saved: string | null = null;
-    try { saved = localStorage.getItem(THEME_KEY); } catch {}
-    const theme = saved ?? (pathname.startsWith('/research') ? 'light' : 'dark');
-    if (document.documentElement.dataset.theme !== theme) document.documentElement.dataset.theme = theme;
-  }, [pathname]);
-  return null;
-}
-
+// The theme never depends on the page: the inline script in layout.tsx sets it once before first paint (saved choice,
+// else dark) and only this toggle changes it afterwards.
 export function ThemeToggle() {
   return (
     <button
