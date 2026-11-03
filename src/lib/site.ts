@@ -11,6 +11,10 @@ export const links = {
   mergedPrs: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} is:pr is:merged`)}&type=pullrequests`,
 };
 
+// Good first issues for one repository.
+export const repoGoodFirst = (slug: string) =>
+  `https://github.com/search?q=${encodeURIComponent(`repo:${ORG}/${slug} label:"good first issue" is:open`)}&type=issues`;
+
 export const nav = [
   { label: 'Projects', href: '/projects' },
   { label: 'Community', href: '/community' },
@@ -43,53 +47,6 @@ export const pillars = [
   { id: '03', title: 'Systems & Tooling', body: 'Developer tools and operators for the stack underneath: an ADB terminal UI, and carbon-aware suspension for Flink on Kubernetes.', repos: ['adbt', 'solstice'] },
   { id: '04', title: 'Core-Team Stewardship', body: 'Core members make the decisions that shape the foundation, and every repository has one or more of them assigned. Contributions are welcome from anyone, under Apache-2.0 unless a project says otherwise.', repos: [] as string[] },
 ];
-
-export const flagship = {
-  stages: [
-    {
-      n: 1, title: 'Inline capture', tag: 'iptables NFQUEUE → Suricata',
-      body: 'Traffic is steered through an NFQUEUE and inspected by Suricata inline, so packets matching rules/local.rules are dropped before they reach the host.',
-      log: ['$ sudo ./scripts/start.sh --dry-run', '[nfqueue] queue bound, suricata running inline', '[suricata] 203.0.113.7 → :80  rule matched  action=drop', '[suricata] alert written → logs/eve.json'],
-    },
-    {
-      n: 2, title: 'Response engine', tag: 'SOAR decision',
-      body: 'Every alert in eve.json is evaluated. Critical or high severity, a named attack class like SQL injection or scanning, or a confident ML flag means block. Loopback, host addresses, gateways and DNS resolvers are never blocked.',
-      log: ['[soar] alert sev=1 sig="SQL injection attempt" src=203.0.113.7', '[soar] allowlist: not loopback / host / gateway / dns', '[soar] decision: BLOCK 203.0.113.7', '[soar] alert src=127.0.0.1 → never blocked (loopback)'],
-    },
-    {
-      n: 3, title: 'Enforce & stream', tag: 'iptables / nftables · unified log',
-      body: 'Blocks are applied with iptables or nftables. Each decision is logged, every block gets a report, and all events are available as one live WebSocket stream.',
-      log: ['[soar] --dry-run: decision logged as not_enforced', '[soar] live mode: block applied via nftables', '[unified] logs/unified_events.json ← suricata + soar', '[stream] ws://127.0.0.1:8000/ws/logs  1 client'],
-    },
-  ],
-  experimental: ['ML inference API', 'Scapy deep packet inspection', 'AI-generated Suricata rules', 'Federated learning'],
-};
-
-export const vajraCapabilities: [string, string][] = [
-  ['Inline IPS with custom Suricata rules', 'Implemented'],
-  ['Automated IP blocking with allowlist and dry-run mode', 'Implemented'],
-  ['Unified event log (Suricata, SOAR and ML)', 'Implemented'],
-  ['Live event stream over WebSocket', 'Implemented'],
-  ['Rule-based user behaviour analytics', 'Implemented'],
-  ['Kafka export of alerts', 'Experimental'],
-  ['ML model management and inference API', 'Experimental'],
-  ['Scapy deep packet inspection', 'Experimental'],
-  ['Encrypted-traffic, anomaly and fingerprinting engines', 'Experimental, not wired in'],
-  ['AI-generated Suricata rules (Google Gemini)', 'Experimental, not wired in'],
-  ['Federated learning (Flower)', 'Experimental, not wired in'],
-  ['DPDK packet capture', 'Roadmap, does not build yet'],
-];
-
-export const vajraQuickstart = `git clone https://github.com/${ORG}/vajra.git
-cd vajra
-make install                         # Suricata and system packages
-make setup                           # virtualenv and editable install
-sudo ./scripts/start.sh --dry-run    # start without enforcing blocks`;
-
-// Only Vajra's extra files have been confirmed; every other link uses a GitHub route that exists on every repo.
-export const extraDocs: Record<string, [string, string][]> = {
-  vajra: [['Architecture', 'docs/architecture.md'], ['Contributing', 'CONTRIBUTING.md'], ['Security policy', 'SECURITY.md'], ['Code of conduct', 'CODE_OF_CONDUCT.md']],
-};
 
 export const contributionSteps: [string, string][] = [
   ['Pick or open an issue', 'Start with any issue labelled “good first issue”, or open one describing what you want to change. Small, focused changes land fastest.'],

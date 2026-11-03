@@ -265,3 +265,19 @@ td.mono{text-transform:none}td.ok{color:var(--ok)}
 .hint{padding:8px 16px;border-top:1px solid var(--hair);text-transform:none}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ── project pages: tables, blocks, maintainers ───── */
+.stack{display:grid;gap:36px;min-width:0}
+.blocks{display:grid;gap:22px;min-width:0}
+.blocks h3.mono,.tblwrap h3.mono,.sub-h{font-weight:500}
+.tblwrap{display:grid;gap:10px;min-width:0}
+.fine{font-size:.9rem;max-width:80ch}
+.bullets{list-style:none;padding:0;display:grid;gap:8px;max-width:80ch}
+.bullets li{position:relative;padding-left:20px;color:var(--fg2)}
+.bullets li::before{content:"";position:absolute;left:0;top:.7em;width:7px;height:1px;background:var(--acc)}
+.mnts{display:flex;flex-wrap:wrap;gap:12px}
+.mnt{display:flex;align-items:center;gap:14px;padding:12px 18px 12px 12px;border:1px solid var(--hair);border-radius:8px;background:var(--surf);transition:border-color .15s}
+.mnt:hover{border-color:var(--hair-hi)}
+.mnt .av{width:56px;height:56px;flex:none}
+.mnt b{display:block;font-weight:600}
+.mnt .mono{text-transform:none}

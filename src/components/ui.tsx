@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import type { Maintainer, Table } from '@/content/projects';
 import { links } from '@/lib/site';
 import type { Project } from '@/lib/site';
 import type { GH } from '@/lib/github';
@@ -33,7 +34,37 @@ export const Who = ({ login }: { login: string }) => (
   </a>
 );
 
-export const ProjectCard = ({ p }: { p: Pick<Project, 'slug' | 'name' | 'domain' | 'tagline' | 'language' | 'stars' | 'forks' | 'license'> }) => (
+// A maintainer, as listed in the repository's MAINTAINERS.md.
+export const MaintainerCard = ({ m }: { m: Maintainer }) => (
+  <a className="mnt" href={`https://github.com/${m.login}`} rel="noopener">
+    <span className="av m"><Img login={m.login} /></span>
+    <span><b>{m.name}</b><span className="mono">@{m.login} · {m.role}</span></span>
+  </a>
+);
+
+const isOk = (cell: string) => /^(Implemented|Supported)/.test(cell);
+export const DataTable = ({ t }: { t: Table }) => (
+  <div className="tblwrap">
+    {t.title ? <h3 className="mono">{t.title}</h3> : null}
+    <div className="tbl">
+      <table>
+        <thead><tr>{t.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+        <tbody>
+          {t.rows.map((r) => (
+            <tr key={r[0] + r[1]}>
+              {r.map((c, j) => (
+                <td key={j} className={j === t.statusCol ? `mono${isOk(c) ? ' ok' : ''}` : undefined}>{t.codeCols?.includes(j) ? <code>{c}</code> : c}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {t.note ? <p className="fine">{t.note}</p> : null}
+  </div>
+);
+
+export const ProjectCard =({ p }: { p: Pick<Project, 'slug' | 'name' | 'domain' | 'tagline' | 'language' | 'stars' | 'forks' | 'license'> }) => (
   <article className="card spot proj" data-domain={p.domain} data-lang={p.language ?? ''}>
     <span className="mono">{p.domain}</span>
     <h3><Link className="stretch" href={`/projects/${p.slug}`}>{p.name}</Link></h3>
