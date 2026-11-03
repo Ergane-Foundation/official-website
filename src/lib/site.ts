@@ -6,7 +6,6 @@ export const FEED_MAX = 5; // items per "pulse" list
 export const links = {
   github: `https://github.com/${ORG}`,
   discord: 'https://discord.gg/b4BQzQX5z',
-  propose: 'https://forms.gle/LYJvszzPkoqof9xLA',
   goodFirst: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} label:"good first issue" state:open`)}&type=issues`,
   mergedPrs: `https://github.com/search?q=${encodeURIComponent(`org:${ORG} is:pr is:merged`)}&type=pullrequests`,
 };

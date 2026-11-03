@@ -1,7 +1,7 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { links } from '@/lib/site';
 import type { Project } from '@/lib/site';
 import { Arrow } from './icons';
 import { useTyping } from './hooks';
@@ -59,10 +59,10 @@ export function ProjectsExplorer({ projects }: { projects: Card[] }) {
           <pre>{log}</pre>
           <div className="row">
             <button className="btn sm" type="button" onClick={() => update({ domain: '', lang: '' })}>Clear filters</button>
-            <a className="btn sm ghost" href={links.propose} rel="noopener">Propose a project <Arrow /></a>
+            <Link className="btn sm ghost" href="/propose">Propose a project <Arrow /></Link>
           </div>
         </div>
-        <p className="note">Have a project you would like to bring to Ergane? <a href={links.propose} rel="noopener">Propose it here <Arrow /></a></p>
+        <p className="note">Have a project you would like to bring to Ergane? <Link href="/propose">Propose it here <Arrow /></Link></p>
       </section>
     </>
   );

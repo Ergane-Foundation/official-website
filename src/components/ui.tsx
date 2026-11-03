@@ -144,10 +144,10 @@ export const Channels = () => (
       <p>Community discussion and contributor onboarding. Start here if you are new.</p>
       <span className="go">Join the Discord <Arrow /></span>
     </a>
-    <a className="card spot ch" href={links.propose} rel="noopener">
+    <Link className="card spot ch" href="/propose">
       <span className="mono">03 // Propose</span><h3>Bring a project</h3>
       <p>Maintain something open source? Propose it to the foundation and we will talk it through.</p>
       <span className="go">Propose a project <Arrow /></span>
-    </a>
+    </Link>
   </div>
 );

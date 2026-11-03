@@ -3,7 +3,7 @@ import { Arrow } from '@/components/icons';
 import { SecHead } from '@/components/ui';
 import { notes } from '@/content/research';
 import { pageMeta } from '@/lib/meta';
-import { links, projectName } from '@/lib/site';
+import { projectName } from '@/lib/site';
 
 export const metadata = pageMeta('Research', 'Engineering notes and proposals from Ergane Foundation projects.');
 
@@ -27,7 +27,7 @@ export default function ResearchPage() {
       </section>
       <section className="sec">
         <SecHead coord="02 // RFCS" title="Proposals" />
-        <p className="empty">No RFCs have been published yet. To bring a project to Ergane, <a href={links.propose} rel="noopener">propose it here <Arrow /></a>.</p>
+        <p className="empty">No RFCs have been published yet. To bring a project to Ergane, <Link href="/propose">propose it here <Arrow /></Link>.</p>
       </section>
     </>
   );

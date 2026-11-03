@@ -33,7 +33,7 @@ export const Footer = () => (
         <h3 className="mono">Community</h3>
         <a href={links.github} rel="noopener">GitHub</a>
         <a href={links.discord} rel="noopener">Discord</a>
-        <a href={links.propose} rel="noopener">Propose a project</a>
+        <Link href="/propose">Propose a project</Link>
         <a href={links.goodFirst} rel="noopener">Good first issues</a>
       </div>
     </div>
