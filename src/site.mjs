@@ -1,4 +1,5 @@
 export const ORG = 'Ergane-Foundation';
+export const FEED_MAX = 5; // items per "pulse" list
 
 export const links = {
   github: `https://github.com/${ORG}`,

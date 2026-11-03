@@ -189,6 +189,7 @@ a.chip:hover,button.chip:hover{color:var(--fg);border-color:var(--fg2)}
 .feed a:hover span:nth-child(2){color:var(--acc)}
 .feed span:nth-child(2){font-size:.92rem}
 .feed time{text-transform:none}
+.tag{display:inline-block;margin-left:6px;padding:0 7px;border:1px solid var(--hair-hi);border-radius:999px;color:var(--ok);font-weight:450;text-transform:none;white-space:nowrap}
 .empty{color:var(--fg2)}
 .empty a{color:var(--acc)}
 .ch .go{margin-top:8px;color:var(--acc);font-weight:500;font-size:.9rem}

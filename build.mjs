@@ -28,7 +28,6 @@ async function build() {
   const idx = [
     ...nav.map(([t, h]) => ({ t, d: 'Page', h: u(h), k: 'page' })),
     ...projects.map((p) => ({ t: p.name, d: p.tagline, h: u(`/projects/${p.slug}/`), g: p.url, k: 'project' })),
-    ...projects.map((p) => ({ t: `${p.name} docs`, d: 'Documentation', h: u(`/projects/${p.slug}/#docs`), k: 'docs' })),
     ...notes.map((n) => ({ t: n.title, d: n.kind, h: u(`/research/${n.slug}/`), k: 'research' })),
     { t: 'Ergane-Foundation on GitHub', d: links.github, h: links.github, k: 'link' },
     { t: 'Join the Discord', d: 'Community discussion and onboarding', h: links.discord, k: 'link' },

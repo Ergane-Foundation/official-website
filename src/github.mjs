@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { ORG } from './site.mjs';
+import { ORG, FEED_MAX } from './site.mjs';
 
 const SNAPSHOT = new URL('./snapshot.json', import.meta.url);
 const headers = {
@@ -54,12 +54,22 @@ async function feedsSection(repos) {
   const [merged, open, good] = await Promise.all([
     search('is:pr is:merged', '&sort=updated&per_page=10'),
     search('is:pr is:open', '&per_page=1'),
-    search('is:issue is:open label:"good first issue"', '&sort=updated&per_page=8'),
+    search('is:issue is:open label:"good first issue"', `&sort=updated&per_page=${FEED_MAX}`),
   ]);
   if (!merged || !open || !good) throw new Error('search returned no body');
+
+  // Fewer than 5 good first issues: top up with the newest open issues (flagged gfi:false) so the list is always full.
+  let goodFirst = good.items.slice(0, FEED_MAX).map((i) => ({ ...slim(i), gfi: true }));
+  if (goodFirst.length < FEED_MAX) {
+    const latest = await search('is:issue is:open', '&sort=created&per_page=10');
+    if (!latest) throw new Error('search returned no body');
+    const have = new Set(goodFirst.map((i) => i.url));
+    const filler = latest.items.filter((i) => !have.has(i.html_url)).map((i) => ({ ...slim(i), at: i.created_at, gfi: false }));
+    goodFirst = [...goodFirst, ...filler].slice(0, FEED_MAX);
+  }
   return {
-    mergedPrs: merged.items.map(slim).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6),
-    goodFirst: good.items.map(slim),
+    mergedPrs: merged.items.map(slim).sort((a, b) => b.at.localeCompare(a.at)).slice(0, FEED_MAX),
+    goodFirst,
     openPrs: open.total_count,
     openIssues: repos.reduce((n, r) => n + r.open_issues_count, 0) - open.total_count,
   };

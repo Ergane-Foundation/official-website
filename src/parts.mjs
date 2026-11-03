@@ -1,4 +1,4 @@
-import { links, flagship } from './site.mjs';
+import { links, flagship, FEED_MAX } from './site.mjs';
 import { esc, u, json, arrow } from './layout.mjs';
 
 export const secHead = (coord, title, sub = '') =>
@@ -30,14 +30,20 @@ export function projectCard(p) {
 </article>`;
 }
 
+// At most FEED_MAX of each. goodFirst may be topped up with the newest open issues (gfi === false, see github.mjs),
+// so the heading says what the list really contains. Items without the flag (older cache/snapshot) count as good first.
 export function feed(gh) {
-  const list = (items, empty, href) =>
+  const list = (items, empty, href, tagGfi = false) =>
     items.length
-      ? `<ul class="feed">${items.map((i) => `<li><a href="${esc(i.url)}" rel="noopener"><span class="mono">${esc(i.repo)}#${i.number}</span><span>${esc(i.title)}</span><time class="mono">${day(i.at)}</time></a></li>`).join('')}</ul>`
+      ? `<ul class="feed">${items.map((i) => `<li><a href="${esc(i.url)}" rel="noopener"><span class="mono">${esc(i.repo)}#${i.number}</span><span>${esc(i.title)}${tagGfi && i.gfi !== false ? ' <b class="tag mono">good first</b>' : ''}</span><time class="mono">${day(i.at)}</time></a></li>`).join('')}</ul>`
       : `<p class="empty">${empty} <a href="${href}" rel="noopener">Search on GitHub ${arrow}</a></p>`;
+  const merged = gh.mergedPrs.slice(0, FEED_MAX);
+  const good = gh.goodFirst.slice(0, FEED_MAX);
+  const gfi = good.filter((i) => i.gfi !== false).length;
+  const heading = !good.length || gfi === good.length ? 'Good first issues' : gfi ? 'Good first &amp; latest issues' : 'Latest open issues';
   return `<div class="feeds">
-  <div class="card"><h3 class="mono">Recently merged PRs</h3>${list(gh.mergedPrs, 'No merged pull requests to show right now.', links.mergedPrs)}</div>
-  <div class="card"><h3 class="mono">Good first issues</h3>${list(gh.goodFirst, 'No open issues labelled “good first issue” right now.', links.goodFirst)}</div>
+  <div class="card"><h3 class="mono">Recently merged PRs</h3>${list(merged, 'No merged pull requests to show right now.', links.mergedPrs)}</div>
+  <div class="card"><h3 class="mono">${heading}</h3>${list(good, 'No open issues to show right now.', links.goodFirst, gfi > 0 && gfi < good.length)}</div>
 </div>`;
 }
 
