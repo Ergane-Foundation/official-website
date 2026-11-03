@@ -1,4 +1,8 @@
 node_modules
+.next
+out
 dist
 .cache
+next-env.d.ts
+*.tsbuildinfo
 .claude/
