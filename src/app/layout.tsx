@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
 import { Spotlight, ThemeSync } from '@/components/Chrome';
 import { Palette, type PaletteItem } from '@/components/Palette';
+import { ScrollBar } from '@/components/ScrollBar';
 import { Footer, Header } from '@/components/Shell';
 import { getProjects } from '@/lib/data';
 import './globals.css';
@@ -21,6 +22,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#08090C' };
 export const revalidate = 3600; // keep equal to REVALIDATE in lib/github.ts (segment config needs a literal)
 
+const criticalCss = 'html{background:#08090C;color-scheme:dark}html[data-theme=light]{background:#F8F9FA;color-scheme:light}';
+
 // Runs before first paint so there is no flash: saved choice, else light on /research, else dark.
 const themeScript = `try{var t=localStorage.getItem('ergane-theme')||(location.pathname.indexOf('/research')===0?'light':'dark');document.documentElement.dataset.theme=t}catch(e){}`;
 
@@ -35,8 +38,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   ];
 
   return (
-    <html lang="en" data-theme="dark" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
+        {/* critical background, inlined so the page is never white while the stylesheet or fonts are still arriving */}
+        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
@@ -49,6 +54,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Palette items={items} />
         <ThemeSync />
         <Spotlight />
+        <ScrollBar />
       </body>
     </html>
   );

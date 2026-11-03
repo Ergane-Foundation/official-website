@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { CodeBlock } from '@/components/Copy';
 import { Arrow } from '@/components/icons';
 import { Pipeline } from '@/components/Pipeline';
-import { DataTable, MaintainerCard, SecHead } from '@/components/ui';
-import { content } from '@/content/projects';
+import { BulletList, DataTable, MaintainerCard, More, SecHead } from '@/components/ui';
+import { content, type Content } from '@/content/projects';
 import { getProjects } from '@/lib/data';
 import { pageMeta } from '@/lib/meta';
 import { links, projectSlugs, repoGoodFirst } from '@/lib/site';
@@ -29,6 +29,24 @@ function docHref(repo: string, target: string) {
   if (target === 'README.md') return `${repo}#readme`;
   if (target === 'releases') return `${repo}/releases`;
   return `${repo}/${target.split('/').pop()!.includes('.') ? 'blob' : 'tree'}/HEAD/${target}`;
+}
+
+// The first `show` documents, the rest behind "Show N more".
+function DocList({ repo, docs, show }: { repo: string; docs: Content['docs']; show: number }) {
+  const list = (xs: Content['docs']) => (
+    <ul className="doc-links">
+      {xs.map(([label, target, detail]) => (
+        <li key={label}><a href={docHref(repo, target)} rel="noopener"><b>{label}</b><span className="mono">{detail}</span><Arrow /></a></li>
+      ))}
+    </ul>
+  );
+  const rest = docs.slice(show);
+  return (
+    <>
+      {list(docs.slice(0, show))}
+      {rest.length ? <More label={`Show ${rest.length} more`}>{list(rest)}</More> : null}
+    </>
+  );
 }
 
 export default async function ProjectPage({ params }: Props) {
@@ -71,7 +89,7 @@ export default async function ProjectPage({ params }: Props) {
               <article key={title} className="card"><span className="mono">0{i + 1}</span><h3>{title}</h3><p>{body}</p></article>
             ))}
           </div>
-          <div className="chips">{p.topics.map((t) => <a key={t} className="chip" href={`https://github.com/topics/${t}`} rel="noopener">{t}</a>)}</div>
+          <div className="chips">{p.topics.slice(0, 6).map((t) => <a key={t} className="chip" href={`https://github.com/topics/${t}`} rel="noopener">{t}</a>)}</div>
         </div>
       </section>
 
@@ -86,8 +104,10 @@ export default async function ProjectPage({ params }: Props) {
               </div>
             ))}
           </div>
-          {c.quickstart.notes?.length ? <ul className="bullets">{c.quickstart.notes.map((t) => <li key={t}>{t}</li>)}</ul> : null}
-          {c.quickstart.tables?.map((t) => <DataTable key={t.title ?? t.head.join()} t={t} />)}
+          {c.quickstart.notes?.length ? <BulletList items={c.quickstart.notes} show={2} /> : null}
+          {c.quickstart.tables?.length ? (
+            <div className="blocks">{c.quickstart.tables.map((t) => <DataTable key={t.title ?? t.head.join()} t={t} collapsed />)}</div>
+          ) : null}
         </div>
       </section>
 
@@ -99,20 +119,18 @@ export default async function ProjectPage({ params }: Props) {
       <section className="sec">
         <SecHead coord={`${num()} // STATUS`} title="Capabilities" sub={c.capabilities.intro} />
         <div className="stack">
-          {c.capabilities.tables.map((t) => <DataTable key={t.title ?? t.head.join()} t={t} />)}
+          <div className="blocks">
+            {c.capabilities.tables.map((t, i) => <DataTable key={t.title ?? t.head.join()} t={t} collapsed={i > 0} />)}
+          </div>
           {c.capabilities.limits?.length ? (
-            <div className="blocks"><h3 className="mono">Known limits</h3><ul className="bullets">{c.capabilities.limits.map((t) => <li key={t}>{t}</li>)}</ul></div>
+            <div className="blocks"><h3 className="mono">Known limits</h3><BulletList items={c.capabilities.limits} show={3} /></div>
           ) : null}
         </div>
       </section>
 
       <section className="sec" id="docs">
         <SecHead coord={`${num()} // DOCS`} title="Documentation" sub="Documentation lives next to the code, in the repository." />
-        <ul className="doc-links">
-          {c.docs.map(([label, target, detail]) => (
-            <li key={label}><a href={docHref(repo, target)} rel="noopener"><b>{label}</b><span className="mono">{detail}</span><Arrow /></a></li>
-          ))}
-        </ul>
+        <DocList repo={repo} docs={c.docs} show={6} />
       </section>
 
       <section className="sec">
@@ -128,14 +146,14 @@ export default async function ProjectPage({ params }: Props) {
             <div className="blocks">
               <h3 className="mono">Maintainers</h3>
               <div className="mnts">{inv.maintainers.map((m) => <MaintainerCard key={m.login} m={m} />)}</div>
-              {inv.decisions ? <p className="fine">{inv.decisions} <a href={docHref(repo, 'MAINTAINERS.md')} rel="noopener">MAINTAINERS.md <Arrow /></a></p> : null}
+              {inv.decisions ? <More label="How decisions are made"><p className="fine">{inv.decisions} <a href={docHref(repo, 'MAINTAINERS.md')} rel="noopener">MAINTAINERS.md <Arrow /></a></p></More> : null}
             </div>
           ) : null}
           {inv.checks ? (
             <div className="blocks"><h3 className="mono">{inv.checks.title}</h3><CodeBlock code={inv.checks.code} /></div>
           ) : null}
           {inv.roadmap?.length ? (
-            <div className="blocks"><h3 className="mono">Roadmap</h3><ul className="bullets">{inv.roadmap.map((t) => <li key={t}>{t}</li>)}</ul></div>
+            <div className="blocks"><h3 className="mono">Roadmap</h3><BulletList items={inv.roadmap} show={4} /></div>
           ) : null}
         </div>
       </section>

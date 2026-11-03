@@ -43,11 +43,13 @@ export const MaintainerCard = ({ m }: { m: Maintainer }) => (
 );
 
 const isOk = (cell: string) => /^(Implemented|Supported)/.test(cell);
-export const DataTable = ({ t }: { t: Table }) => (
-  <div className="tblwrap">
-    {t.title ? <h3 className="mono">{t.title}</h3> : null}
+
+// A table. `collapsed` tucks it behind its title (native <details>, no JS) so secondary reference tables don't crowd the
+// page; wide tables keep a minimum width and scroll sideways inside their own box on a phone.
+export function DataTable({ t, collapsed = false }: { t: Table; collapsed?: boolean }) {
+  const table = (
     <div className="tbl">
-      <table>
+      <table style={t.head.length > 2 ? { minWidth: t.head.length * 130 } : undefined}>
         <thead><tr>{t.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
         <tbody>
           {t.rows.map((r) => (
@@ -60,12 +62,38 @@ export const DataTable = ({ t }: { t: Table }) => (
         </tbody>
       </table>
     </div>
-    {t.note ? <p className="fine">{t.note}</p> : null}
-  </div>
+  );
+  const note = t.note ? <p className="fine">{t.note}</p> : null;
+  if (collapsed) {
+    return (
+      <details className="disc">
+        <summary><span className="mono">{t.title}</span><em><span className="mono">{t.rows.length} rows</span></em></summary>
+        {table}
+        {note}
+      </details>
+    );
+  }
+  return <div className="tblwrap">{t.title ? <h3 className="mono">{t.title}</h3> : null}{table}{note}</div>;
+}
+
+// First `show` items, the rest behind "Show N more".
+export function BulletList({ items, show = 3 }: { items: string[]; show?: number }) {
+  const rest = items.slice(show);
+  const list = (xs: string[]) => <ul className="bullets">{xs.map((t) => <li key={t}>{t}</li>)}</ul>;
+  return (
+    <>
+      {list(items.slice(0, show))}
+      {rest.length ? <details className="more"><summary><span className="show">Show {rest.length} more</span><span className="hide">Show less</span></summary>{list(rest)}</details> : null}
+    </>
+  );
+}
+
+export const More = ({ label, children }: { label: string; children: ReactNode }) => (
+  <details className="more"><summary><span className="show">{label}</span><span className="hide">Show less</span></summary>{children}</details>
 );
 
-export const ProjectCard =({ p }: { p: Pick<Project, 'slug' | 'name' | 'domain' | 'tagline' | 'language' | 'stars' | 'forks' | 'license'> }) => (
-  <article className="card spot proj" data-domain={p.domain} data-lang={p.language ?? ''}>
+export const ProjectCard = ({ p, hidden }: { p: Pick<Project, 'slug' | 'name' | 'domain' | 'tagline' | 'language' | 'stars' | 'forks' | 'license'>; hidden?: boolean }) => (
+  <article className="card spot proj" data-domain={p.domain} data-lang={p.language ?? ''} hidden={hidden}>
     <span className="mono">{p.domain}</span>
     <h3><Link className="stretch" href={`/projects/${p.slug}`}>{p.name}</Link></h3>
     <p>{p.tagline}</p>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { notes } from '@/content/research';
 import { pageMeta } from '@/lib/meta';
+import { projectName } from '@/lib/site';
 
 export const dynamicParams = false;
 export const generateStaticParams = () => notes.map((n) => ({ slug: n.slug }));
@@ -22,7 +23,7 @@ export default async function NotePage({ params }: Props) {
   return (
     <article className="sec doc">
       <Link className="crumb mono" href="/research">← Research</Link>
-      <span className="mono">{n.kind} · {n.date}</span>
+      <span className="mono">{n.kind} · {n.date} · <Link href={`/projects/${n.project}`}>{projectName(n.project)}</Link></span>
       <h1>{n.title}</h1>
       <div className="prose">{n.body}</div>
     </article>

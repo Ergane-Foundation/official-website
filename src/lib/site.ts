@@ -31,6 +31,7 @@ const meta: Record<string, Meta> = {
   adbt: { name: 'adbt', domain: 'Tooling', tagline: 'A modern, keyboard-driven Android Debug Bridge TUI.' },
 };
 export const projectSlugs = Object.keys(meta);
+export const projectName = (slug: string) => meta[slug]?.name ?? slug;
 
 export type Project = Repo & Meta & { slug: string; url: string };
 

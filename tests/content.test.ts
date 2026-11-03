@@ -2,6 +2,7 @@
 // match its header, and diagram labels too long for their boxes.
 import assert from 'node:assert/strict';
 import { content } from '../src/content/projects';
+import { notes } from '../src/content/research';
 import { layoutStages } from '../src/lib/diagram';
 import { projectSlugs } from '../src/lib/site';
 
@@ -34,5 +35,11 @@ for (const [slug, c] of Object.entries(content)) {
     for (const row of rows) for (let i = 1; i < row.length; i++) assert.ok(row[i].x > row[i - 1].x + row[i - 1].w, at('nodes overlap'));
   }
 }
+
+// Research: every project has at least one note, slugs are unique, and each note points at a real project.
+const slugs = notes.map((n) => n.slug);
+assert.equal(new Set(slugs).size, slugs.length, 'duplicate research slugs');
+for (const n of notes) assert.ok(projectSlugs.includes(n.project), `note ${n.slug}: unknown project ${n.project}`);
+for (const p of projectSlugs) assert.ok(notes.some((n) => n.project === p), `no research note for ${p}`);
 
 console.log('project content ok');

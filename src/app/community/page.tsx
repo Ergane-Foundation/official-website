@@ -1,11 +1,13 @@
 import { ContributionSteps } from '@/components/Interactive';
-import { Avatar, Channels, Feed, SecHead, Who } from '@/components/ui';
+import { Avatar, Channels, Feed, More, SecHead, Who } from '@/components/ui';
 import { getGithub } from '@/lib/data';
 import { pageMeta } from '@/lib/meta';
 import { people } from '@/lib/view';
 
 export const metadata = pageMeta('Community', 'How the Ergane Foundation works and how to contribute.');
 export const revalidate = 3600;
+
+const WALL = 12; // contributor avatars shown before "Show N more"
 
 export default async function CommunityPage() {
   const gh = await getGithub();
@@ -35,7 +37,12 @@ export default async function CommunityPage() {
         {contributors.length ? (
           <div className="group">
             <h3 className="mono">Contributors · {contributors.length}</h3>
-            <div className="avs wall">{contributors.map((l) => <Avatar key={l} login={l} />)}</div>
+            <div className="avs wall">{contributors.slice(0, WALL).map((l) => <Avatar key={l} login={l} />)}</div>
+            {contributors.length > WALL ? (
+              <More label={`Show ${contributors.length - WALL} more`}>
+                <div className="avs wall">{contributors.slice(WALL).map((l) => <Avatar key={l} login={l} />)}</div>
+              </More>
+            ) : null}
           </div>
         ) : null}
       </section>

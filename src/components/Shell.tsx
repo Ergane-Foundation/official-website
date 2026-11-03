@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { links, nav } from '@/lib/site';
-import { Nav, PaletteButton, ThemeToggle } from './Chrome';
+import { MobileMenu, Nav, PaletteButton, ThemeToggle } from './Chrome';
 import { Mark } from './icons';
 
 export const Header = ({ stars }: { stars: number }) => (
@@ -11,7 +11,8 @@ export const Header = ({ stars }: { stars: number }) => (
       <div className="tools">
         <PaletteButton />
         <ThemeToggle />
-        <a className="btn sm" href={links.github} rel="noopener">GitHub <span className="mono">★ {stars}</span></a>
+        <a className="btn sm gh-btn" href={links.github} rel="noopener">GitHub <span className="mono">★ {stars}</span></a>
+        <MobileMenu extra={[{ label: `GitHub · ★ ${stars}`, href: links.github }, { label: 'Discord', href: links.discord }]} />
       </div>
     </div>
   </header>
